@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Universe Modeler - Jadon Koegel (V.1)</title>
+		<style>
+			body { margin: 0; }
+		</style>
+
+		<!-- Virtual Method of using JS Files from: https://stackoverflow.com/questions/46349370/javascript-file-not-found-using-relative-path-during-flask-render-template -->
+		<!-- here:-->
+		<!-- <script src="{{ url_for('static', filename='js/massiveBody.js')}}"></script>
+		<script src="{{ url_for('static', filename='js/three.js')}}"></script> -->
+
+	</head>
+	<body>
+		<!-- Direct Inclusiuon of Javascript Libraries for Local Hosting Testing  -->
+		<script src="/static/js/massiveBody.js"></script>
+		<!-- <script src="/static/js/three.js"></script> -->
+	
+		<!-- Main Program Script Starts Here: -->
+		<script>
+			const MB = new massiveBody(1.47095, 11, 0, 0, 0, 0, 3.0290, 4, 1.989, 30);
+			// // console.log("Main - X: " + MB.X + " Xe: " + MB.Xe);
+			// console.log("Main - Y: " + MB.Y + " Ye: " + MB.Ye);
+			// // console.log("Main - GX: " + MB.GX + " GXe: " + MB.GXe);
+			// console.log("Main - VY: " + MB.VY + " VYe: " + MB.VYe);
+			// console.log("Main - GY: " + MB.GY + " GYe: " + MB.GYe);
+			// // console.log("Main - X: " + MB.X + " Xe: " + MB.Xe);
+			// // MB.X = 1.470921;
+			// // MB.Xe = 11;
+
+			// // MB.Y = 6.5426;
+			// // MB.Ye = 8;
+			// MB.calcParams();
+			// //console.log("Main - X: " + MB.X + " Xe: " + MB.Xe);
+			// console.log("Main - Y: " + MB.Y + " Ye: " + MB.Ye);
+			// //console.log("Main - GX: " + MB.GX + " GXe: " + MB.GXe);
+			// console.log("Main - VX: " + MB.VY + " Xe: " + MB.VYe);
+			// console.log("Main - GY: " + MB.GY + " GYe: " + MB.GYe);
+			// // MB.X = 1.470864;
+			// // MB.Xe = 11;
+
+			// // MB.Y = 1.3085
+			// // MB.Ye = 9;
+			// MB.calcParams();
+			// //console.log("Main - X: " + MB.X + " Xe: " + MB.Xe);
+			// console.log("Main - Y: " + MB.Y + " Ye: " + MB.Ye);
+			// //console.log("Main - GX: " + MB.GX + " GXe: " + MB.GXe);
+			// console.log("Main - VX: " + MB.VY + " Xe: " + MB.VYe);
+			// console.log("Main - GY: " + MB.GY + " GYe: " + MB.GYe);
+			// // console.log("Main - VX: " + MB.VX + " VXe: " + MB.VXe);
+			// // console.log("Main - X: " + MB.X + " Xe: " + MB.Xe);
+
+			for(var i = 0; i < 10; i++){
+				// console.log("Main - X: " + MB.X + " Xe: " + MB.Xe);
+				// console.log("Main - Y: " + MB.Y + " Ye: " + MB.Ye);
+				console.log("Main - XAdj: " + MB.XAdj);
+				console.log("Main - YAdj: " + MB.YAdj);
+				// console.log("Main - VX: " + MB.VX + " VXe: " + MB.VXe);
+				// console.log("Main - VY: " + MB.VY + " VYe: " + MB.VYe);
+				// console.log("Main - GX: " + MB.GX + " GXe: " + MB.GXe);
+				// console.log("Main - GY: " + MB.GY + " GYe: " + MB.GYe);
+				MB.calcParams();
+			}
+
+		</script>
+	</body>
+	
+</html>
