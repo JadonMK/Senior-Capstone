@@ -1,4 +1,3 @@
-export { massiveBody };
 class massiveBody {
     //Variable Naming Key:
     //Ex.
@@ -18,9 +17,6 @@ class massiveBody {
     AU = 1.4959; //Distance from Earth to Sun (Astronomical Unit) = 1.4959e11 meters
     AUe = 11;
 
-    Name = ""; //Name of body
-    clicked = false;
-
     X = 0; //X position
     Xe = 0;
     Y = 0; //Y position
@@ -37,8 +33,7 @@ class massiveBody {
     XAdj = 0; //X in terms of Astronomical Units
     YAdj = 0; //Y in terms of Astronomical Units
 
-    constructor(Name, X, Xe, Y, Ye, VX, VXe, VY, VYe, M, Me) {
-        this.Name = Name;
+    constructor(X, Xe, Y, Ye, VX, VXe, VY, VYe, M, Me) {
         this.X = X;
         this.Xe = Xe;
         this.Y = Y;
@@ -183,9 +178,6 @@ class massiveBody {
             exp++;
         }
         return [num, exp];
-    }
-    get Name(){
-        return this.Name;
     }
     get XAdj(){
         return this.XAdj;
