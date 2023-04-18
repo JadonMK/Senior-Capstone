@@ -15,8 +15,11 @@ class massiveBody {
     Me = 0;
     dt = 2.16; //Time change between position and velocity iterations in seconds
     dte = 4; //Time change modifier: dt = 21600 (2.16e4)
+
     AU = 1.4959; //Distance from Earth to Sun (Astronomical Unit) = 1.4959e11 meters
     AUe = 11;
+    EV = 3.0290; //Earth Velocity (Astronomical Units) = 30,290 m/s
+    EVe = 4;
 
     Name = ""; //Name of body
     clicked = false; //Is the body selected?
@@ -37,6 +40,8 @@ class massiveBody {
 
     XAdj = 0; //X in terms of Astronomical Units
     YAdj = 0; //Y in terms of Astronomical Units
+    VXAdj = 0; //VX in terms of Astronomical Units
+    VYAdj = 0; //VY in terms of Astronomical Units
 
     constructor(Name, X, Xe, Y, Ye, VX, VXe, VY, VYe, M, Me) {
         this.Name = Name;
@@ -55,6 +60,9 @@ class massiveBody {
 
         this.XAdj = (this.X/this.AU)*10**(this.Xe-this.AUe);
         this.YAdj = (this.Y/this.AU)*10**(this.Ye-this.AUe);
+
+        this.VXAdj = (this.VX/this.EV)*10**(this.VXe-this.EVe);
+        this.VYAdj = (this.VY/this.EV)*10**(this.VYe-this.EVe);
 
         var GXtemp = this.GravAccX();
         this.GX = GXtemp[0];
@@ -241,6 +249,10 @@ class massiveBody {
         X = n;
         return;
     }
+    set Xe(n){
+        Xe = n;
+        return;
+    }
     set VXe(n){
         VXe = n;
         return;
@@ -248,5 +260,37 @@ class massiveBody {
     set VYe(n){
         VYe = n;
         return;
+    }
+    setX(n){
+        this.X = n;
+        this.XAdj = (this.X/this.AU)*10**(this.Xe-this.AUe);
+    }
+    setXe(n){
+        this.Xe = n;
+        this.XAdj = (this.X/this.AU)*10**(this.Xe-this.AUe);
+    }
+    setY(n){
+        this.Y = n;
+        this.YAdj = (this.Y/this.AU)*10**(this.Ye-this.AUe);
+    }
+    setYe(n){
+        this.Ye = n;
+        this.YAdj = (this.Y/this.AU)*10**(this.Ye-this.AUe);
+    }
+    setVX(n){
+        this.VX = n;
+        this.VXAdj = (this.VX/this.EV)*10**(this.VXe-this.EVe);
+    }
+    setVXe(n){
+        this.VXe = n;
+        this.VXAdj = (this.VX/this.EV)*10**(this.VXe-this.EVe);
+    }
+    setVY(n){
+        this.VY = n;
+        this.VYAdj = (this.VY/this.EV)*10**(this.VYe-this.EVe);
+    }
+    setVYe(n){
+        this.VYe = n;
+        this.VYAdj = (this.VY/this.EV)*10**(this.VYe-this.EVe);
     }
 }
