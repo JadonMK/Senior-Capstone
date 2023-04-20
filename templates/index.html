@@ -59,14 +59,6 @@
 			//https://medium.com/nerd-for-tech/getting-started-with-your-first-three-js-project-part-two-the-build-3fd9a2f21418
 			renderer.setClearColor("#121212"); //233143
 
-			//Label Renderer for Planet Floating Statistics
-			const labelRenderer = new CSS2DRenderer();
-			labelRenderer.setSize(window.innerWidth, window.innerHeight);
-			labelRenderer.domElement.style.position = "absolute";
-			labelRenderer.domElement.style.top = "0px";
-			document.body.appendChild(labelRenderer.domElement);
-			labelRenderer.domElement.style.pointerEvents = 'none'
-
 			//Simple Resize Event Listener: https://sbcode.net/view_source/multiplecontrols.html
 			window.addEventListener('resize', onWindowResize, false)
             function onWindowResize() {
@@ -102,12 +94,9 @@
 			var zoom = -2; //Start zoom index at -2 so camera is only reverted once if no zoom mode is selected
 			var Scaling = {
 				ScaleFactor: 10,
+				OldScaleFactor: 10, //Used to down-scale and re-scale orbit tracing
 				rootScale: false
 			}
-
-			//Planet Labels
-			var PlanetDivs = [];
-			var PlanetLabels = [];
 
 			//Math Constants
 			const M = 1.989;
@@ -137,13 +126,14 @@
 			}
 
 			//Orbit Tracing 
-			var traceOrbit = false;
+			var skip = 0; //Number of points to skip in between trace points (saves on memory)
 			const orbitTracePoints = [NUMPLANETS];
 			for(let i = 0; i < NUMPLANETS; i++)
 				orbitTracePoints[i] = new Array();
 			var orbitLines = [];
 			const pointsmaterial = new THREE.LineBasicMaterial( { color: 0x666666 /*White*/} );
 
+			//Establish Gui Interface
 			userControls();
 
 			var count = 0;
@@ -165,17 +155,21 @@
 						}
 					}
 
-					for(let i = 0; i < NUMPLANETS; i++){
-						scene.remove(orbitLines[i]);
-						if(traceOrbit){
-							if(orbitTracePoints[i].length > 1000)
-								orbitTracePoints[i].shift();
-							orbitTracePoints[i].push(new THREE.Vector3( Planets[i].position.x, Planets[i].position.y, Planets[i].position.z));
-							const pointsgeometry = new THREE.BufferGeometry().setFromPoints( orbitTracePoints[i] );
-							orbitLines[i] = new THREE.Line( pointsgeometry, pointsmaterial );
+					skip++;
+					if(skip > 2){
+						for(let i = 0; i < NUMPLANETS; i++){
+							scene.remove(orbitLines[i]);
+							if(PlanetPhysics[i].TraceOrbit){
+								if(orbitTracePoints[i].length > 1000)
+									orbitTracePoints[i].shift();
+								orbitTracePoints[i].push(new THREE.Vector3( Planets[i].position.x, Planets[i].position.y, Planets[i].position.z));
+								const pointsgeometry = new THREE.BufferGeometry().setFromPoints( orbitTracePoints[i] );
+								orbitLines[i] = new THREE.Line( pointsgeometry, pointsmaterial );
 
-							scene.add( orbitLines[i] );
+								scene.add( orbitLines[i] );
+							}
 						}
+						skip = 0;
 					}
 
 					count = 0;
@@ -191,11 +185,8 @@
 					controls.update(); //zoom index -1: continue to update drag controls (base level for zoom controls)
 				}
 
-				//updatePlanetLabels();
-
 				requestAnimationFrame( animate );
 				renderer.render ( scene, camera );
-				labelRenderer.render(scene, camera);
 			}
 
 			animate();
@@ -260,15 +251,10 @@
 					play = true;
 			}
 
-			function orbitTraceOnOff(){
-				if(traceOrbit){
-					for(let i = 0; i < NUMPLANETS; i++){
-						orbitTracePoints[i] = [];
-					}
-					traceOrbit = false;
-				}
-				else{
-					traceOrbit = true;
+			function checkedOrbitTrace(n){
+				if(!PlanetPhysics[n].TraceOrbit){
+					delete orbitTracePoints[n];
+					orbitTracePoints[n] = [];
 				}
 			}
 
@@ -276,6 +262,7 @@
 				const newObject = mainGui.addFolder('New Planetary Body');
 				//const currentObjects = mainGui.addFolder('Current Orbit Parameters');
 				const zoomFolder = mainGui.addFolder('Zoom');
+				const orbitTraceFolder = mainGui.addFolder('Orbit Tracing');
 				const scaleFolder = mainGui.addFolder('Scaling');
 				var current = [];
 				for(var i = 0; i < NUMPLANETS; i++)
@@ -301,19 +288,20 @@
 
 						console.log("X: " +  PlanetPhysics[NUMPLANETS].X + " Xe: " + PlanetPhysics[NUMPLANETS].Xe + " Y: " + PlanetPhysics[NUMPLANETS].Y + " Ye: " + PlanetPhysics[NUMPLANETS].Ye + " VX: " + PlanetPhysics[NUMPLANETS].VX + " VXe: " + PlanetPhysics[NUMPLANETS].VXe + " " + " VY: " + PlanetPhysics[NUMPLANETS].VY + " VYe: " + PlanetPhysics[NUMPLANETS].VYe);
 
-						// currentObjects.add(PlanetPhysics[NUMPLANETS], 'clicked').name(PlanetPhysics[NUMPLANETS].Name).onChange(function(){
-						// 	//updatePlanetLabels();
-						// });
-
+						//Update Zoom Controls
 						var n = NUMPLANETS;
 						zoomFolder.add( PlanetPhysics[NUMPLANETS], 'Zoom').name(PlanetPhysics[NUMPLANETS].Name).listen().onChange(function(){
 							checkedZoom(n);
 						})
 
+						//Update Orbit Trace Controls
+						orbitTraceFolder.add( PlanetPhysics[i], 'TraceOrbit').name(PlanetPhysics[i].Name).listen();
+						orbitTracePoints[NUMPLANETS] = new Array();
+
+						//Add new object to scene
 						scene.add( Planets[NUMPLANETS] );
 
 						NUMPLANETS++;
-						//loadPlanetLabels();
 					},
 					home: function(){
 						for(let i = 0; i < NUMPLANETS; i++)
@@ -324,8 +312,6 @@
 
 				//Play/Pause Animation Function
 				mainGui.add( {pauseplay}, 'pauseplay').name('\u23EF' + " Play/Pause");
-				//Turn Orbit Tracing On and Off
-				mainGui.add( {orbitTraceOnOff}, 'orbitTraceOnOff').name("Toggle Orbit Tracing");
 				//Move camera back to home position
 				mainGui.add( userParams, 'home').name('Revert Camera');
 	
@@ -340,7 +326,7 @@
 				newObject.add( userParams, 'xe', 0, 15, 1).name('X Modifier (x10' + t.sup() + ')').onChange(function(){
 					p.setXe(userParams.xe);
 				});
-				var XConverted = newObject.add(p, 'XAdj').name('Astronomical Units:').listen();
+				var XConverted = newObject.add(p, 'XAdj').name('In Astronomical Units:').listen();
 				XConverted.__precision = 6;
 				XConverted.domElement.style.pointerEvents = "none";
 
@@ -350,7 +336,7 @@
 				newObject.add( userParams, 'ye', 0, 15, 1).name('Y Modifier (x10' + t.sup() + ')').onChange(function(){
 					p.setYe(userParams.ye);
 				});
-				var YConverted = newObject.add(p, 'YAdj').name('Astronomical Units:').listen();
+				var YConverted = newObject.add(p, 'YAdj').name('In Astronomical Units:').listen();
 				YConverted.__precision = 6;
 				YConverted.domElement.style.pointerEvents = "none";
 
@@ -360,7 +346,7 @@
 				newObject.add( userParams, 'vxe', 0, 15, 1).name('X Velocity Modifier (x10' + t.sup() + ')').onChange(function(){
 					p.setVXe(userParams.vxe);
 				});
-				var VXConverted = newObject.add(p, 'VXAdj').name('Astronomical Units:').listen();
+				var VXConverted = newObject.add(p, 'VXAdj').name('In Astronomical Units:').listen();
 				VXConverted.__precision = 6;
 				VXConverted.domElement.style.pointerEvents = "none";
 
@@ -370,21 +356,21 @@
 				newObject.add( userParams, 'vye', 0, 15, 1).name('Y Velocity Modifier (x10' + t.sup() + ')').onChange(function(){
 					p.setVYe(userParams.vye);
 				});
-				var VYConverted = newObject.add(p, 'VYAdj').name('Astronomical Units:').listen();
+				var VYConverted = newObject.add(p, 'VYAdj').name('In Astronomical Units:').listen();
 				VYConverted.__precision = 6;
 				VYConverted.domElement.style.pointerEvents = "none";
+
+				var CalculatedVelocity = newObject.add(p, 'VCalc').name('Pre-Calculated Velocity:').listen();
+				CalculatedVelocity.__precision = 6;
+				CalculatedVelocity.domElement.style.pointerEvents = "none";
+				newObject.add({empty}, 'empty').name('Use Pre-Calculated Velocity').onChange(function(){
+					
+				});
 				
 				newObject.add( userParams, 'newPlanet').name("Create New Planetary Body");
 				function log(n){
 					return n
 				};
-				
-				//Planet Parameter Labels
-				// for(let i = 0; i < NUMPLANETS; i++){
-				// 	currentObjects.add(PlanetPhysics[i], 'clicked').name(PlanetPhysics[i].Name).onChange(function(){
-				// 		//updatePlanetLabels();
-				// 	})
-				// };
 				
 				//Zoom Selection Controls
 				for(let i = 0; i< NUMPLANETS; i++){
@@ -393,58 +379,44 @@
 					})
 				};
 
-				scaleFolder.add(Scaling, 'ScaleFactor', 1, 20, 1).name('Scale Factor:');
-				scaleFolder.add(Scaling, 'rootScale').name('Root Scale Factor');
+				//Orbit-Trace Selection Controls
+				for(let i = 0; i< NUMPLANETS; i++){
+					orbitTraceFolder.add( PlanetPhysics[i], 'TraceOrbit').name(PlanetPhysics[i].Name).listen().onChange(function(){
+						checkedOrbitTrace(i);
+					})
+				};
+
+				scaleFolder.add(Scaling, 'ScaleFactor', 1, 20, 1).name('Scale Factor:').onChange(function(){
+					for(let i = 0; i < NUMPLANETS; i++){
+						scene.remove(orbitLines[i]);
+						if(PlanetPhysics[i].TraceOrbit){
+							for(let j = 0; j < orbitTracePoints[i].length; j++){
+								orbitTracePoints[i][j] = orbitTracePoints[i][j].multiplyScalar(1/Scaling.OldScaleFactor);
+								orbitTracePoints[i][j] = orbitTracePoints[i][j].multiplyScalar(Scaling.ScaleFactor);
+							}
+							const pointsgeometry = new THREE.BufferGeometry().setFromPoints( orbitTracePoints[i] );
+							orbitLines[i] = new THREE.Line( pointsgeometry, pointsmaterial );
+						}
+					}
+					Scaling.OldScaleFactor = Scaling.ScaleFactor;
+				});
+				scaleFolder.add(Scaling, 'rootScale').name('Root Scale Factor').onChange(function(){
+					for(let i = 0; i < NUMPLANETS; i++){
+						delete orbitTracePoints[i];
+						orbitTracePoints[i] = [];
+						scene.remove(orbitLines[i]);
+						// if(PlanetPhysics[i].TraceOrbit){
+						// 	for(let j = 0; j < orbitTracePoints[i].length; j++){
+						// 		orbitTracePoints[i][j].setX(Math.sign(orbitTracePoints[i][j].getComponent(0))*Math.sqrt(Math.abs(orbitTracePoints[i][j].getComponent(0))));
+						// 		orbitTracePoints[i][j].setY(Math.sign(orbitTracePoints[i][j].getComponent(1))*Math.sqrt(Math.abs(orbitTracePoints[i][j].getComponent(1))));
+						// 		orbitTracePoints[i][j].setZ(Math.sign(orbitTracePoints[i][j].getComponent(2))*Math.sqrt(Math.abs(orbitTracePoints[i][j].getComponent(2))));
+						// 	}
+						// 	const pointsgeometry = new THREE.BufferGeometry().setFromPoints( orbitTracePoints[i] );
+						// 	orbitLines[i] = new THREE.Line( pointsgeometry, pointsmaterial );
+						// }
+					}
+				});
 			}
-
-			function loadPlanetLabels(n){
-				const sunDiv = document.createElement("div");
-				sunDiv.className = "label";
-				sunDiv.textContent = "Sun";
-				sunDiv.style.color = "#FFFFFF";
-				sunDiv.style.backgroundColor = '#303030';
-
-				const sunLabel = new CSS2DObject(sunDiv);
-				sunLabel.position.set(0, 1.5, 0);
-				sun.add(sunLabel);
-
-				// for(let i = 0; i < NUMPLANETS; i++){
-				// 	var newPlanetDiv = document.createElement("div");
-				// 	newPlanetDiv.className = "label";
-				// 	newPlanetDiv.textContent = (PlanetPhysics[i].Name + ": " + '\r\n' + "X Position: " + PlanetPhysics[i].X.toPrecision(3) + "e" + PlanetPhysics[i].Xe + " m" + '\r\n' + "Y Position: " + PlanetPhysics[i].Y.toPrecision(3) + "e" +PlanetPhysics[i].Ye + " m");
-				// 	newPlanetDiv.style.color = "#FFFFFF";
-				// 	newPlanetDiv.style.backgroundColor = '#303030';
-				// 	PlanetDivs[i] = newPlanetDiv;
-
-				// 	const newPlanetLabel = new CSS2DObject(PlanetDivs[i]);
-				// 	newPlanetLabel.position.set(PlanetPhysics[i].XAdj*Scaling.ScaleFactor, PlanetPhysics[i].YAdj*Scaling.ScaleFactor, 0);
-				// 	PlanetLabels[i] = newPlanetLabel;
-				// 	Planets[i].add(PlanetLabels[i]);
-				// }
-
-				var newPlanetDiv = document.createElement("div");
-				newPlanetDiv.className = "label";
-				newPlanetDiv.textContent = (PlanetPhysics[n].Name + ": " + '\r\n' + "X Position: " + PlanetPhysics[n].X.toPrecision(3) + "e" + PlanetPhysics[n].Xe + " m" + '\r\n' + "Y Position: " + PlanetPhysics[n].Y.toPrecision(3) + "e" +PlanetPhysics[n].Ye + " m");
-				newPlanetDiv.style.color = "#FFFFFF";
-				newPlanetDiv.style.backgroundColor = '#303030';
-				//newPlanetDiv.style.scale = 0.5;
-				//PlanetDivs[i] = newPlanetDiv;
-
-				const newPlanetLabel = new CSS2DObject(newPlanetDiv);
-				newPlanetLabel.position.set(Planets[n].position.x, Planets[n].position.y, -10);
-				//PlanetLabels[i] = newPlanetLabel;
-				Planets[n].add(newPlanetLabel);
-			}
-
-			// function updatePlanetLabels(){
-			// 	for(let i = 0; i < NUMPLANETS; i++){
-			// 		if(PlanetPhysics[i].clicked)
-			// 			PlanetDivs[i].style.visibility = "visible";
-			// 		else
-			// 			PlanetDivs[i].style.visibility = "hidden";
-			// 		PlanetDivs[i].textContent = (PlanetPhysics[i].Name + ": " + '\r\n' + "X Position: " + PlanetPhysics[i].X.toPrecision(3) + "e" + PlanetPhysics[i].Xe + " m" + '\r\n' + "Y Position: " + PlanetPhysics[i].Y.toPrecision(3) + "e" +PlanetPhysics[i].Ye + " m");
-			// 	}
-			// }
 
 			function checkedZoom(p){
 				//Uncheck rest of non-selected buttons
@@ -460,10 +432,13 @@
 						//Add new button scheme for zoomed plane
 						zoomGuiButton = new GUI();
 						zoomGuiParams = new GUI();
+						// zoomGuiParams.domElement.addEventListener("click", function(){
+						// 	if(play)
+						// 		play = false;
+						// });
 						zoomGuiParams.hide();
 						zoomGuiButton.add({editPlanetOrbit}, 'editPlanetOrbit').name('Edit Planet Orbit');
 						zoomGuiButton.add({editPlanetOrbitPausePlay}, 'editPlanetOrbitPausePlay').name('Back');
-						loadPlanetLabels(p);
 						zoom = p;
 						break;
 					}
@@ -546,6 +521,8 @@
 				camera.position.y = Planets[n].position.y;
 				camera.position.z = 1;
 			}
+
+			function empty(){}
 		</script>
 	</body>
 	
