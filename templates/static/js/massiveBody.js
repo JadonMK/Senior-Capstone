@@ -46,6 +46,12 @@ class massiveBody {
 
     VCalc = 0; //Calculated velocity to yeild a stable orbit given X and Y
     VeCalc = 0;
+    VXCalc = 0;
+    VXeCalc = 0;
+    VYCalc = 0;
+    VYeCalc = 0;
+    userVXCalc = 0;
+    userVYCalc = 0;
 
     constructor(Name, X, Xe, Y, Ye, VX, VXe, VY, VYe, M, Me) {
         this.Name = Name;
@@ -282,88 +288,317 @@ class massiveBody {
         this.X = n;
         this.XAdj = (this.X/this.AU)*10**(this.Xe-this.AUe);
 
-        var radiusAdj = Math.sqrt(this.XAdj**2+this.YAdj**2);
-        var R = (this.X/this.XAdj)*radiusAdj;
-        var Re = this.Xe;
-        this.VCalc = Math.sqrt((this.G*this.M)/R);
-        this.VeCalc = (this.Ge+this.Me-Re)*0.5;
-        this.VCalc = this.VCalc*10**(this.VeCalc);
+        if(this.XAdj == 0 && this.YAdj == 0){
+            this.VCalc = 0;
+            this.VeCalc = 0;
+            this.VXCalc = this.VCalc;
+            this.VXeCalc = this.VeCalc;
+            this.VYCalc = this.VCalc;
+            this.VYeCalc = this.VeCalc;
+            return;
+        }
+        else if(this.XAdj == 0){
+            var R = this.Y;
+            var Re = this.Ye;
+            this.VCalc = Math.sqrt((this.G*this.M)/R);
+            this.VeCalc = (this.Ge+this.Me-Re)*0.5;
+
+            if(Math.sign(this.YAdj) == -1)
+                this.VXCalc = this.VCalc;
+            else
+                this.VXCalc = this.VCalc*-1;
+            this.VXeCalc = this.VeCalc;
+            this.VYCalc = 0;
+            this.VYeCalc = 0;
+        }
+        else if(this.YAdj == 0){
+            var R = this.X;
+            var Re = this.Xe;
+            this.VCalc = Math.sqrt((this.G*this.M)/R);
+            this.VeCalc = (this.Ge+this.Me-Re)*0.5;
+
+            if(Math.sign(this.XAdj) == -1)
+                this.VYCalc = this.VCalc*-1;
+            else
+                this.VYCalc = this.VCalc;
+            this.VYeCalc = this.VeCalc;
+            this.VXCalc = 0;
+            this.VXeCalc = 0;
+        }
+        else {
+            var radiusAdj = Math.sqrt(this.XAdj**2+this.YAdj**2);
+            var R = (this.X/this.XAdj)*radiusAdj;
+            var Re = this.Xe;
+            this.VCalc = Math.sqrt((this.G*this.M)/R);
+            this.VeCalc = (this.Ge+this.Me-Re)*0.5;
+            console.log(this.VCalc*10**this.VeCalc);
+            if(this.XAdj > this.YAdj){
+                this.VXCalc = Math.sin((Math.PI/2)-Math.atan(this.XAdj/this.YAdj))*this.VCalc;
+                this.VYCalc = Math.cos((Math.PI/2)-Math.atan(this.XAdj/this.YAdj))*this.VCalc;
+                this.VXeCalc = this.VeCalc;
+                this.VYeCalc = this.VeCalc;
+            }
+            else{
+                this.VXCalc = Math.cos((Math.PI/2)-Math.atan(this.YAdj/this.XAdj))*this.VCalc;
+                this.VYCalc = Math.sin((Math.PI/2)-Math.atan(this.YAdj/this.XAdj))*this.VCalc;
+                this.VXeCalc = this.VeCalc;
+                this.VYeCalc = this.VeCalc;
+            }
+
+            if(Math.sign(this.XAdj) == Math.sign(this.YAdj)){
+                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj)*-1;
+                this.VYCalc = Math.abs(this.VYCalc)*Math.sign(this.XAdj);
+            }
+            else{
+                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
+                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
+            }
+        }
+
+        this.userVXCalc = this.VXCalc*10**this.VXeCalc;
+        this.userVYCalc = this.VYCalc*10**this.VYeCalc;
+
+        //console.log("XAdj: " + this.XAdj + " YAdj: " + this.YAdj + " VCalc: " + this.VCalc + " VeCalc: " + this.VeCalc + " VXCalc: " + this.VXCalc + " VXeCalc: " + this.VXeCalc + " VYCalc: " + this.VYCalc + " VYeCalc: " + this.VYeCalc);
     }
     setXe(n){
         this.Xe = n;
         this.XAdj = (this.X/this.AU)*10**(this.Xe-this.AUe);
 
-        var radiusAdj = Math.sqrt(this.XAdj**2+this.YAdj**2);
-        var R = (this.X/this.XAdj)*radiusAdj;
-        var Re = this.Xe;
-        this.VCalc = Math.sqrt((this.G*this.M)/R);
-        this.VeCalc = (this.Ge+this.Me-Re)*0.5;
-        this.VCalc = this.VCalc*10**(this.VeCalc);
+        if(this.XAdj == 0 && this.YAdj == 0){
+            this.VCalc = 0;
+            this.VeCalc = 0;
+            this.VXCalc = this.VCalc;
+            this.VXeCalc = this.VeCalc;
+            this.VYCalc = this.VCalc;
+            this.VYeCalc = this.VeCalc;
+            return;
+        }
+        else if(this.XAdj == 0){
+            var R = this.Y;
+            var Re = this.Ye;
+            this.VCalc = Math.sqrt((this.G*this.M)/R);
+            this.VeCalc = (this.Ge+this.Me-Re)*0.5;
+
+            if(Math.sign(this.YAdj) == -1)
+                this.VXCalc = this.VCalc;
+            else
+                this.VXCalc = this.VCalc*-1;
+            this.VXeCalc = this.VeCalc;
+            this.VYCalc = 0;
+            this.VYeCalc = 0;
+        }
+        else if(this.YAdj == 0){
+            var R = this.X;
+            var Re = this.Xe;
+            this.VCalc = Math.sqrt((this.G*this.M)/R);
+            this.VeCalc = (this.Ge+this.Me-Re)*0.5;
+
+            if(Math.sign(this.XAdj) == -1)
+                this.VYCalc = this.VCalc*-1;
+            else
+                this.VYCalc = this.VCalc;
+            this.VYeCalc = this.VeCalc;
+            this.VXCalc = 0;
+            this.VXeCalc = 0;
+        }
+        else {
+            var radiusAdj = Math.sqrt(this.XAdj**2+this.YAdj**2);
+            var R = (this.X/this.XAdj)*radiusAdj;
+            var Re = this.Xe;
+            this.VCalc = Math.sqrt((this.G*this.M)/R);
+            this.VeCalc = (this.Ge+this.Me-Re)*0.5;
+            console.log(this.VCalc*10**this.VeCalc);
+            if(this.XAdj > this.YAdj){
+                this.VXCalc = Math.sin((Math.PI/2)-Math.atan(this.XAdj/this.YAdj))*this.VCalc;
+                this.VYCalc = Math.cos((Math.PI/2)-Math.atan(this.XAdj/this.YAdj))*this.VCalc;
+                this.VXeCalc = this.VeCalc;
+                this.VYeCalc = this.VeCalc;
+            }
+            else{
+                this.VXCalc = Math.cos((Math.PI/2)-Math.atan(this.YAdj/this.XAdj))*this.VCalc;
+                this.VYCalc = Math.sin((Math.PI/2)-Math.atan(this.YAdj/this.XAdj))*this.VCalc;
+                this.VXeCalc = this.VeCalc;
+                this.VYeCalc = this.VeCalc;
+            }
+
+            if(Math.sign(this.XAdj) == Math.sign(this.YAdj)){
+                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj)*-1;
+                this.VYCalc = Math.abs(this.VYCalc)*Math.sign(this.XAdj);
+            }
+            else{
+                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
+                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
+            }
+        }
+
+        this.userVXCalc = this.VXCalc*10**this.VXeCalc;
+        this.userVYCalc = this.VYCalc*10**this.VYeCalc;
     }
     setY(n){
         this.Y = n;
         this.YAdj = (this.Y/this.AU)*10**(this.Ye-this.AUe);
 
-        var radiusAdj = Math.sqrt(this.XAdj**2+this.YAdj**2);
-        var R = (this.X/this.XAdj)*radiusAdj;
-        var Re = this.Xe;
-        this.VCalc = Math.sqrt((this.G*this.M)/R);
-        this.VeCalc = (this.Ge+this.Me-Re)*0.5;
-        this.VCalc = this.VCalc*10**(this.VeCalc);
+        if(this.XAdj == 0 && this.YAdj == 0){
+            this.VCalc = 0;
+            this.VeCalc = 0;
+            this.VXCalc = this.VCalc;
+            this.VXeCalc = this.VeCalc;
+            this.VYCalc = this.VCalc;
+            this.VYeCalc = this.VeCalc;
+            return;
+        }
+        else if(this.XAdj == 0){
+            console.log("X = 0");
+            var R = this.Y;
+            var Re = this.Ye;
+            this.VCalc = Math.sqrt((this.G*this.M)/R);
+            console.log(this.VCalc);
+            this.VeCalc = (this.Ge+this.Me-Re)*0.5;
+
+            if(Math.sign(this.YAdj) == -1)
+                this.VXCalc = this.VCalc;
+            else
+                this.VXCalc = this.VCalc*-1;
+            this.VXeCalc = this.VeCalc;
+            this.VYCalc = 0;
+            this.VYeCalc = 0;
+        }
+        else if(this.YAdj == 0){
+            var R = this.X;
+            var Re = this.Xe;
+            this.VCalc = Math.sqrt((this.G*this.M)/R);
+            this.VeCalc = (this.Ge+this.Me-Re)*0.5;
+
+            if(Math.sign(this.XAdj) == -1)
+                this.VYCalc = this.VCalc*-1;
+            else
+                this.VYCalc = this.VCalc;
+            this.VYeCalc = this.VeCalc;
+            this.VXCalc = 0;
+            this.VXeCalc = 0;
+        }
+        else {
+            var radiusAdj = Math.sqrt(this.XAdj**2+this.YAdj**2);
+            var R = (this.X/this.XAdj)*radiusAdj;
+            var Re = this.Xe;
+            this.VCalc = Math.sqrt((this.G*this.M)/R);
+            this.VeCalc = (this.Ge+this.Me-Re)*0.5;
+            console.log(this.VCalc*10**this.VeCalc);
+            if(this.XAdj > this.YAdj){
+                this.VXCalc = Math.sin((Math.PI/2)-Math.atan(this.XAdj/this.YAdj))*this.VCalc;
+                this.VYCalc = Math.cos((Math.PI/2)-Math.atan(this.XAdj/this.YAdj))*this.VCalc;
+                this.VXeCalc = this.VeCalc;
+                this.VYeCalc = this.VeCalc;
+            }
+            else{
+                this.VXCalc = Math.cos((Math.PI/2)-Math.atan(this.YAdj/this.XAdj))*this.VCalc;
+                this.VYCalc = Math.sin((Math.PI/2)-Math.atan(this.YAdj/this.XAdj))*this.VCalc;
+                this.VXeCalc = this.VeCalc;
+                this.VYeCalc = this.VeCalc;
+            }
+
+            if(Math.sign(this.XAdj) == Math.sign(this.YAdj)){
+                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj)*-1;
+                this.VYCalc = Math.abs(this.VYCalc)*Math.sign(this.XAdj);
+            }
+            else{
+                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
+                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
+            }
+        }
+
+        this.userVXCalc = this.VXCalc*10**this.VXeCalc;
+        this.userVYCalc = this.VYCalc*10**this.VYeCalc;
     }
     setYe(n){
         this.Ye = n;
         this.YAdj = (this.Y/this.AU)*10**(this.Ye-this.AUe);
 
-        var radiusAdj = Math.sqrt(this.XAdj**2+this.YAdj**2);
-        var R = (this.X/this.XAdj)*radiusAdj;
-        var Re = this.Xe;
-        this.VCalc = Math.sqrt((this.G*this.M)/R);
-        this.VeCalc = (this.Ge+this.Me-Re)*0.5;
-        this.VCalc = this.VCalc*10**(this.VeCalc);
+        if(this.XAdj == 0 && this.YAdj == 0){
+            this.VCalc = 0;
+            this.VeCalc = 0;
+            this.VXCalc = this.VCalc;
+            this.VXeCalc = this.VeCalc;
+            this.VYCalc = this.VCalc;
+            this.VYeCalc = this.VeCalc;
+            return;
+        }
+        else if(this.XAdj == 0){
+            var R = this.Y;
+            var Re = this.Ye;
+            this.VCalc = Math.sqrt((this.G*this.M)/R);
+            this.VeCalc = (this.Ge+this.Me-Re)*0.5;
+
+            if(Math.sign(this.YAdj) == -1)
+                this.VXCalc = this.VCalc;
+            else
+                this.VXCalc = this.VCalc*-1;
+            this.VXeCalc = this.VeCalc;
+            this.VYCalc = 0;
+            this.VYeCalc = 0;
+        }
+        else if(this.YAdj == 0){
+            var R = this.X;
+            var Re = this.Xe;
+            this.VCalc = Math.sqrt((this.G*this.M)/R);
+            this.VeCalc = (this.Ge+this.Me-Re)*0.5;
+
+            if(Math.sign(this.XAdj) == -1)
+                this.VYCalc = this.VCalc*-1;
+            else
+                this.VYCalc = this.VCalc;
+            this.VYeCalc = this.VeCalc;
+            this.VXCalc = 0;
+            this.VXeCalc = 0;
+        }
+        else {
+            var radiusAdj = Math.sqrt(this.XAdj**2+this.YAdj**2);
+            var R = (this.X/this.XAdj)*radiusAdj;
+            var Re = this.Xe;
+            this.VCalc = Math.sqrt((this.G*this.M)/R);
+            this.VeCalc = (this.Ge+this.Me-Re)*0.5;
+            console.log(this.VCalc*10**this.VeCalc);
+            if(this.XAdj > this.YAdj){
+                this.VXCalc = Math.sin((Math.PI/2)-Math.atan(this.XAdj/this.YAdj))*this.VCalc;
+                this.VYCalc = Math.cos((Math.PI/2)-Math.atan(this.XAdj/this.YAdj))*this.VCalc;
+                this.VXeCalc = this.VeCalc;
+                this.VYeCalc = this.VeCalc;
+            }
+            else{
+                this.VXCalc = Math.cos((Math.PI/2)-Math.atan(this.YAdj/this.XAdj))*this.VCalc;
+                this.VYCalc = Math.sin((Math.PI/2)-Math.atan(this.YAdj/this.XAdj))*this.VCalc;
+                this.VXeCalc = this.VeCalc;
+                this.VYeCalc = this.VeCalc;
+            }
+
+            if(Math.sign(this.XAdj) == Math.sign(this.YAdj)){
+                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj)*-1;
+                this.VYCalc = Math.abs(this.VYCalc)*Math.sign(this.XAdj);
+            }
+            else{
+                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
+                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
+            }
+        }
+
+        this.userVXCalc = this.VXCalc*10**this.VXeCalc;
+        this.userVYCalc = this.VYCalc*10**this.VYeCalc;
     }
     setVX(n){
         this.VX = n;
         this.VXAdj = (this.VX/this.EV)*10**(this.VXe-this.EVe);
-
-        var radiusAdj = Math.sqrt(this.XAdj**2+this.YAdj**2);
-        var R = (this.X/this.XAdj)*radiusAdj;
-        var Re = this.Xe;
-        this.VCalc = Math.sqrt((this.G*this.M)/R);
-        this.VeCalc = (this.Ge+this.Me-Re)*0.5;
-        this.VCalc = this.VCalc*10**(this.VeCalc);
     }
     setVXe(n){
         this.VXe = n;
         this.VXAdj = (this.VX/this.EV)*10**(this.VXe-this.EVe);
 
-        var radiusAdj = Math.sqrt(this.XAdj**2+this.YAdj**2);
-        var R = (this.X/this.XAdj)*radiusAdj;
-        var Re = this.Xe;
-        this.VCalc = Math.sqrt((this.G*this.M)/R);
-        this.VeCalc = (this.Ge+this.Me-Re)*0.5;
-        this.VCalc = this.VCalc*10**(this.VeCalc);
     }
     setVY(n){
         this.VY = n;
         this.VYAdj = (this.VY/this.EV)*10**(this.VYe-this.EVe);
-
-        var radiusAdj = Math.sqrt(this.XAdj**2+this.YAdj**2);
-        var R = (this.X/this.XAdj)*radiusAdj;
-        var Re = this.Xe;
-        this.VCalc = Math.sqrt((this.G*this.M)/R);
-        this.VeCalc = (this.Ge+this.Me-Re)*0.5;
-        this.VCalc = this.VCalc*10**(this.VeCalc);
     }
     setVYe(n){
         this.VYe = n;
         this.VYAdj = (this.VY/this.EV)*10**(this.VYe-this.EVe);
-
-        var radiusAdj = Math.sqrt(this.XAdj**2+this.YAdj**2);
-        var R = (this.X/this.XAdj)*radiusAdj;
-        var Re = this.Xe;
-        this.VCalc = Math.sqrt((this.G*this.M)/R);
-        this.VeCalc = (this.Ge+this.Me-Re)*0.5;
-        this.VCalc = this.VCalc*10**(this.VeCalc);
     }
 }

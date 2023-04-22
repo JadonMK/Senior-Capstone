@@ -65,7 +65,6 @@
                 camera.aspect = window.innerWidth / window.innerHeight
                 camera.updateProjectionMatrix()
                 renderer.setSize(window.innerWidth, window.innerHeight)
-                render()
             }
 
 			//First central sphere
@@ -301,6 +300,7 @@
 						//Add new object to scene
 						scene.add( Planets[NUMPLANETS] );
 
+						this.x = this.xe = this.y = this.ye = this.vx = this.vxe = this.vy = this.vye = p.XAdj = p.YAdj =  0;
 						NUMPLANETS++;
 					},
 					home: function(){
@@ -320,51 +320,60 @@
 				
 				newObject.add(userParams, 'name').name('New Planet Name');
 
-				newObject.add( userParams, 'x', -9, 9, 0.01).name('X Position (meters)').onChange(function(){
+				newObject.add( userParams, 'x', -9, 9, 0.01).name('X Position (meters)').listen().onChange(function(){
 					p.setX(userParams.x);
 				});
-				newObject.add( userParams, 'xe', 0, 15, 1).name('X Modifier (x10' + t.sup() + ')').onChange(function(){
+				newObject.add( userParams, 'xe', 0, 15, 1).name('X Modifier (x10' + t.sup() + ')').listen().onChange(function(){
 					p.setXe(userParams.xe);
 				});
 				var XConverted = newObject.add(p, 'XAdj').name('In Astronomical Units:').listen();
 				XConverted.__precision = 6;
 				XConverted.domElement.style.pointerEvents = "none";
 
-				newObject.add( userParams, 'y', -9, 9, 0.01).name('Y Position (meters)').onChange(function(){
+				newObject.add( userParams, 'y', -9, 9, 0.01).name('Y Position (meters)').listen().onChange(function(){
 					p.setY(userParams.y);
 				});
-				newObject.add( userParams, 'ye', 0, 15, 1).name('Y Modifier (x10' + t.sup() + ')').onChange(function(){
+				newObject.add( userParams, 'ye', 0, 15, 1).name('Y Modifier (x10' + t.sup() + ')').listen().onChange(function(){
 					p.setYe(userParams.ye);
 				});
 				var YConverted = newObject.add(p, 'YAdj').name('In Astronomical Units:').listen();
 				YConverted.__precision = 6;
 				YConverted.domElement.style.pointerEvents = "none";
 
-				newObject.add( userParams, 'vx', -9, 9, 0.01).name('Initial X Velocity (m/s)').onChange(function(){
+				newObject.add( userParams, 'vx', -9, 9, 0.01).name('Initial X Velocity (m/s)').listen().onChange(function(){
 					p.setVX(userParams.vx);
 				});
-				newObject.add( userParams, 'vxe', 0, 15, 1).name('X Velocity Modifier (x10' + t.sup() + ')').onChange(function(){
+				newObject.add( userParams, 'vxe', 0, 15, 1).name('X Velocity Modifier (x10' + t.sup() + ')').listen().onChange(function(){
 					p.setVXe(userParams.vxe);
 				});
 				var VXConverted = newObject.add(p, 'VXAdj').name('In Astronomical Units:').listen();
 				VXConverted.__precision = 6;
 				VXConverted.domElement.style.pointerEvents = "none";
 
-				newObject.add( userParams, 'vy', -9, 9, 0.01).name('Initial Y Velocity (m/s)').onChange(function(){
+				newObject.add( userParams, 'vy', -9, 9, 0.01).name('Initial Y Velocity (m/s)').listen().onChange(function(){
 					p.setVY(userParams.vy);
 				});
-				newObject.add( userParams, 'vye', 0, 15, 1).name('Y Velocity Modifier (x10' + t.sup() + ')').onChange(function(){
+				newObject.add( userParams, 'vye', 0, 15, 1).name('Y Velocity Modifier (x10' + t.sup() + ')').listen().onChange(function(){
 					p.setVYe(userParams.vye);
 				});
 				var VYConverted = newObject.add(p, 'VYAdj').name('In Astronomical Units:').listen();
 				VYConverted.__precision = 6;
 				VYConverted.domElement.style.pointerEvents = "none";
 
-				var CalculatedVelocity = newObject.add(p, 'VCalc').name('Pre-Calculated Velocity:').listen();
-				CalculatedVelocity.__precision = 6;
-				CalculatedVelocity.domElement.style.pointerEvents = "none";
-				newObject.add({empty}, 'empty').name('Use Pre-Calculated Velocity').onChange(function(){
-					
+				//Pre-Calculated X and Y Velocity Read-Out:
+				var CalculatedVX = newObject.add(p, 'userVXCalc').name('Pre-Calculated X Velocity:').listen();
+				CalculatedVX.__precision = 2;
+				CalculatedVX.domElement.style.pointerEvents = "none";
+
+				var CalculatedVY = newObject.add(p, 'userVYCalc').name('Pre-Calculated Y Velocity:').listen();
+				CalculatedVY.__precision = 2;
+				CalculatedVY.domElement.style.pointerEvents = "none";
+
+				newObject.add({empty}, 'empty').name('Use Pre-Calculated Velocites').onChange(function(){
+					userParams.vx = p.VXCalc;
+					userParams.vxe = p.VXeCalc;
+					userParams.vy = p.VYCalc;
+					userParams.vye = p.VYeCalc;
 				});
 				
 				newObject.add( userParams, 'newPlanet').name("Create New Planetary Body");
