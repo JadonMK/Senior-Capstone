@@ -351,7 +351,7 @@ class massiveBody {
             }
             else{
                 this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
-                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
+                this.VYCalc = Math.abs(this.VYCalc)*Math.sign(this.XAdj);
             }
         }
 
@@ -427,7 +427,7 @@ class massiveBody {
             }
             else{
                 this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
-                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
+                this.VYCalc = Math.abs(this.VYCalc)*Math.sign(this.XAdj);
             }
         }
 
@@ -503,7 +503,7 @@ class massiveBody {
             }
             else{
                 this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
-                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
+                this.VYCalc = Math.abs(this.VYCalc)*Math.sign(this.XAdj);
             }
         }
 
@@ -577,7 +577,7 @@ class massiveBody {
             }
             else{
                 this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
-                this.VXCalc = Math.abs(this.VXCalc)*Math.sign(this.XAdj);
+                this.VYCalc = Math.abs(this.VYCalc)*Math.sign(this.XAdj);
             }
         }
 
