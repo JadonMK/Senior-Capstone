@@ -96,21 +96,19 @@
 				rootScale: false
 			}
 
+			var t = '1.989 x10^30';
 			//Math Constants
 			var BigM = {
 				S: 1.989,
 				Se: 30,
-				M1: 0,
-				M1e: 0,
+				M1: 1.989,
+				M1e: 30,
+				R1: 1,
+				T1: 5772,
+				BB1: '#FFF8EF',
 				SM1: 1,
-				T1: 0,
-				BB1: "#000000",
-				lights1: [],
-				M2: 0,
-				M2e: 0,
-				SM2: 0,
-				T2: 0,
-				BB2: "#000000",
+				ReadOut1: t,
+				lights1: []
 			}
 
 			//Mesh Arrays for central masses
@@ -119,13 +117,13 @@
 			const Suns = [];
 
 			//Place first sphere for editing
-			SolarGeometry[0] = new THREE.SphereGeometry( 4, 64, 32);
-			SolarMaterial[0] = new THREE.MeshLambertMaterial();
-			SolarMaterial[0].color.set('#FF0000' /*black*/);
+			SolarGeometry[0] = new THREE.SphereGeometry( BigM.R1*2, 64, 32);
+			SolarMaterial[0] = new THREE.MeshBasicMaterial();
+			SolarMaterial[0].color.set(BigM.BB1 /*black*/);
 			Suns[0] = new THREE.Mesh( SolarGeometry[0], SolarMaterial[0]);
-			Suns[0].material.emissive = new THREE.Color( '#FF0D00' );
+			//Suns[0].material.emissive = new THREE.Color( '#FFF8EF' );
 			scene.add( Suns[0] );
-			Ignite(BigM.lights1, 8, "#FFFFFF");
+			//Ignite(BigM.lights1, 8, "#FFFFFF");
 
 			//Physcis Engines for each Planet
 			var PlanetPhysics = [];	
@@ -141,7 +139,7 @@
 
 			//Orbiting Body Geometry
 			var Planets = [];
-			var PlanetGeometry = new THREE.SphereGeometry(0.18, 32, 16);
+			var PlanetGeometry = new THREE.SphereGeometry(0.2, 32, 16);
 			var PlanetMaterial = new THREE.MeshLambertMaterial( { color: 0x060404 /*Grey*/ } );
 			for(var i = 0; i < NUMPLANETS; i++){
 				Planets[i] = new THREE.Mesh(PlanetGeometry, PlanetMaterial);
@@ -161,7 +159,11 @@
 			//Establish Gui Interface
 			userControls();
 
+			//Rendering Frame Rate Constant
 			var count = 0;
+
+			//Planet lighting array
+			var lights = [];
 
 			function animate() {
 				if(start){
@@ -173,7 +175,7 @@
 				if(play && count >= 0){
 					for(var i = 0; i < NUMPLANETS; i++){
 						PlanetPhysics[i].calcParams();
-						
+
 						if(Scaling.rootScale){
 							var r = Math.sqrt( (PlanetPhysics[i].XAdj**2 + PlanetPhysics[i].YAdj**2) );
 							Planets[i].position.x = ((PlanetPhysics[i].XAdj/r)*Math.sqrt(r))*Scaling.ScaleFactor;
@@ -183,6 +185,16 @@
 							Planets[i].position.x = PlanetPhysics[i].XAdj*Scaling.ScaleFactor;
 							Planets[i].position.y = PlanetPhysics[i].YAdj*Scaling.ScaleFactor;
 						}
+
+						var R = Math.sqrt(Planets[i].position.x**2 + Planets[i].position.y**2);
+						var Rprime = R - 0.6;
+						var theta = Math.acos(Math.abs(Planets[i].position.x)/R);
+
+						scene.remove(lights[i]);
+						lights[i] = new THREE.PointLight(0xFFFFFF, 100, 1.5);
+						lights[i].color.set( BigM.BB1 );
+						lights[i].position.set(Rprime*Math.cos(theta)*Math.sign(Planets[i].position.x), Rprime*Math.sin(theta)*Math.sign(Planets[i].position.y), 0);
+						scene.add(lights[i]);
 					}
 
 					skip++;
@@ -222,34 +234,60 @@
 			animate();
 
 			function Ignite(lights, radius, color){
-				for(i = 0; i <6; i++){
-					lights[i] = new THREE.PointLight(0xFFFFFF, 3, 10);
+				var neg = -1;
+				var j = 1;
+				for(let i = 0; i < 12; i++){
+					lights[i] = new THREE.DirectionalLight(0xFFFFFF, 1, 1);
 					lights[i].color.set( color );
 					
-					if(i == 0){
-						lights[i].position.set(radius, 0, 0);
+					if(i < 3){
+						lights[i].position.set(Math.cos((j)*(Math.PI/4))*radius, Math.sin((j)*(Math.PI/4))*radius, 0);
+
+						lights[i].target.position.set(Math.cos((j)*(Math.PI/4))*radius*2, Math.sin((j)*(Math.PI/4))*radius*2, 0);
 						scene.add(lights[i]);
+						scene.add(lights[i].target);
+						lights[i].target.updateMatrixWorld();
+
+						const pointLightHelper = new THREE.DirectionalLightHelper( lights[i], 1 );
+						scene.add( pointLightHelper );
 					}
-					else if(i == 1){
-						lights[i].position.set(-radius, 0, 0);
+					else if(i > 2 && i < 6){
+						lights[i].position.set(Math.cos((j)*(Math.PI/4))*radius*neg, Math.sin((j)*(Math.PI/4))*radius, 0);
+						
+						lights[i].target.position.set(Math.cos((j)*(Math.PI/4))*radius*neg*2, Math.sin((j)*(Math.PI/4))*radius*2, 0);
 						scene.add(lights[i]);
+						scene.add(lights[i].target);
+						lights[i].target.updateMatrixWorld();
+
+						const pointLightHelper = new THREE.DirectionalLightHelper( lights[i], 1 );
+						scene.add( pointLightHelper );
 					}
-					else if(i == 2){
-						lights[i].position.set(0, radius, 0);
+					else if(i > 5 && i < 8){
+						lights[i].position.set(Math.cos((j)*(Math.PI/4))*radius*neg, Math.sin((j)*(Math.PI/4))*radius*neg, 0);
+						
+						lights[i].target.position.set(Math.cos((j)*(Math.PI/4))*radius*neg*2, Math.sin((j)*(Math.PI/4))*radius*neg*2, 0);
 						scene.add(lights[i]);
+						scene.add(lights[i].target);
+						lights[i].target.updateMatrixWorld();
+
+						const pointLightHelper = new THREE.DirectionalLightHelper( lights[i], 1 );
+						scene.add( pointLightHelper );
 					}
-					else if(i == 3){
-						lights[i].position.set(0, -radius, 0);
+					else{
+						lights[i].position.set(Math.cos((j)*(Math.PI/4))*radius, Math.sin((j)*(Math.PI/4))*radius*neg, 0);
+						
+						lights[i].target.position.set(Math.cos((j)*(Math.PI/4))*radius*2, Math.sin((j)*(Math.PI/4))*radius*neg*2, 0);
 						scene.add(lights[i]);
+						scene.add(lights[i].target);
+						lights[i].target.updateMatrixWorld();
+
+						const pointLightHelper = new THREE.DirectionalLightHelper( lights[i], 1 );
+						scene.add( pointLightHelper );
 					}
-					else if(i == 4){
-						lights[i].position.set(0, 0, radius);
-						scene.add(lights[i]);
-					}
-					else if(i == 5){
-						lights[i].position.set(0, 0, -radius);
-						scene.add(lights[i]);
-					}
+
+					j++;
+					if(j > 2)
+						j = 0;
 				}
 			}
 
@@ -354,51 +392,35 @@
 			function userControls(){
 				var b = '\u2609';
 				startGui.add(BigM, 'SM1', 0.01, 6, 0.001). name("Solar Mass (M" + b.sub() + "): ").listen().onChange(function(){
-					//BigM.SM1 = (BigM.M1/BigM.S)*10**(BigM.M1e-BigM.Se);
+					BigM.M1 = (BigM.SM1*BigM.S);
+					BigM.M1e = BigM.Se;
+					while(BigM.M1 >= 10){
+						BigM.M1 = BigM.M1/10;
+						BigM.M1e++;
+					}
+					while(BigM.M1 < 1){
+						BigM.M1 = BigM.M1*10;
+						BigM.M1e--;
+					}
 
-					var R = 1.0283*BigM.SM1**0.9092;
+					BigM.ReadOut1 = BigM.M1.toFixed(3) + " x10^" + BigM.M1e;
 
-					BigM.T1 = (((1.3179*BigM.SM1**3.7924)/R**2)**0.25)*5772;
+					BigM.R1 = 1.0283*BigM.SM1**0.9092;
+
+					BigM.T1 = (((1.3179*BigM.SM1**3.7924)/BigM.R1**2)**0.25)*5772;
 
 					KelvintoRGB(BigM.T1);
 
 					scene.remove(Suns[0]);
-					SolarGeometry[0] = new THREE.SphereGeometry( R*4, 64, 32);
+					SolarGeometry[0] = new THREE.SphereGeometry( BigM.R1*2, 64, 32);
 					SolarMaterial[0].color.set(BigM.BB1);
 					Suns[0] = new THREE.Mesh( SolarGeometry[0], SolarMaterial[0]);
-					Suns[0].material.emissive = new THREE.Color( BigM.BB1 );
+					//Suns[0].material.emissive = new THREE.Color( BigM.BB1 );
 					scene.add( Suns[0] );
-
-					for(let i = 0; i < BigM.lights1.length; i++){
-						scene.remove(BigM.lights1[i]);}
-
-					BigM.lights1[i].color.set( BigM.BB1 );
 				});
-				// startGui.add(BigM, 'M1e', 20, 40, 1). name("Scientific Notation: x10" + t.sup()).onChange(function(){
-				// 	BigM.SM1 = (BigM.M1/BigM.S)*10**(BigM.M1e-BigM.Se);
-
-				// 	var R = 1.0283*BigM.SM1**0.9092;
-
-				// 	BigM.T1 = (((1.3179*BigM.SM1**3.7924)/R**2)**0.25)*5772;
-
-				// 	KelvintoRGB(BigM.T1);
-
-				// 	scene.remove(Suns[0]);
-				// 	SolarGeometry[0] = new THREE.SphereGeometry( R, 64, 32);
-				// 	SolarMaterial[0].color.set(BigM.BB1);
-				// 	Suns[0] = new THREE.Mesh( SolarGeometry[0], SolarMaterial[0]);
-				// 	scene.add( Suns[0] );
-
-				// 	for(let i = 0; i < BigM.lights1.length; i++)
-				// 		BigM.lights1[i].color.set( BigM.BB1 );
-				// });
-				// startGui.add(BigM, 'T1', 1000, 40000, 100).name("Temperature (K): ").onChange(function(){
-				// });
-				//var TemperatureDisplay = startGui.addColor(BigM, 'BB1').name('Black Body Color: ').listen();
-				//TemperatureDisplay.domElement.style.pointerEvents = 'none';
-				var t = BigM.Se.toString();
-				var MassDisplay = startGui.add(BigM, 'SM1').name("Mass (kg): " + BigM.SM1*BigM.S + "x10" + t.sup() + "): ").listen();
-				t = 'n';
+		
+				var MassDisplay = startGui.add(BigM, 'ReadOut1').name("Mass (kg):").listen();
+				var t = 'n';
 				MassDisplay.__precision = '6';
 				MassDisplay.domElement.style.pointerEvents = 'none';
 				startGui.add({empty}, 'empty').name("Create Star").listen().onChange(function(){
@@ -406,11 +428,13 @@
 						start = false;
 					else	
 						start = true;
+
+					console.log("lights: " + BigM.lights1 + " R: " + BigM.R1*2+0.5 + " BB: " + BigM.BB1);
+					//Ignite(BigM.lights1, BigM.R1*2+0.5, BigM.BB1);
 				});
 
 				var newObject = mainGui.addFolder('New Planetary Body');
 
-				const currentObjects = mainGui.addFolder('Current Orbit Parameters');
 				const zoomFolder = mainGui.addFolder('Zoom');
 				const orbitTraceFolder = mainGui.addFolder('Orbit Tracing');
 				const scaleFolder = mainGui.addFolder('Scaling');
@@ -433,8 +457,12 @@
 						Planets[NUMPLANETS] = new THREE.Mesh(PlanetGeometry, PlanetMaterial);
 
 						console.log("X: " + this.x + "e" + this.xe + " Y: " + this.y + "e" + this.ye + " VX: " + this.vx + "e" + this.vxe + " VY: " + this.vy + "e" +this.vye);
+
+						console.log("BigM: " + BigM.M1 + "e" + BigM.M1e);
 						
-						PlanetPhysics[NUMPLANETS] = new massiveBody(this.name, this.x, this.xe, this.y, this.ye, this.vx, this.vxe, this.vy, this.vye, M, Me);
+						PlanetPhysics[NUMPLANETS] = new massiveBody(this.name, this.x, this.xe, this.y, this.ye, this.vx, this.vxe, this.vy, this.vye, BigM.M1, BigM.M1e);
+
+						console.log("M: " + PlanetPhysics[NUMPLANETS].M + " Me: " + PlanetPhysics[NUMPLANETS].Me);
 
 						console.log("X: " +  PlanetPhysics[NUMPLANETS].X + " Xe: " + PlanetPhysics[NUMPLANETS].Xe + " Y: " + PlanetPhysics[NUMPLANETS].Y + " Ye: " + PlanetPhysics[NUMPLANETS].Ye + " VX: " + PlanetPhysics[NUMPLANETS].VX + " VXe: " + PlanetPhysics[NUMPLANETS].VXe + " " + " VY: " + PlanetPhysics[NUMPLANETS].VY + " VYe: " + PlanetPhysics[NUMPLANETS].VYe);
 
@@ -453,6 +481,9 @@
 						//Add new object to scene
 						scene.add( Planets[NUMPLANETS] );
 
+						lights[NUMPLANETS] = new THREE.PointLight(0xFFFFFF, 100, 1.5);
+						lights[NUMPLANETS].color.set( BigM.BB1 );
+
 						this.x = this.xe = this.y = this.ye = this.vx = this.vxe = this.vy = this.vye = p.XAdj = p.YAdj = p.userVXCalc = p.userVYCalc =  0;
 						NUMPLANETS++;
 					},
@@ -468,14 +499,18 @@
 				//Move camera back to home position
 				mainGui.add( userParams, 'home').name('Revert Camera');
 	
-				var p = new massiveBody(userParams.name, userParams.x, userParams.xe, userParams.y, userParams.ye, userParams.vx, userParams.vxe, userParams.vy, userParams.vye, BigM.M, BigM.Me);
+				var p = new massiveBody(userParams.name, userParams.x, userParams.xe, userParams.y, userParams.ye, userParams.vx, userParams.vxe, userParams.vy, userParams.vye, BigM.M1, BigM.M1e);
 				
 				newObject.add(userParams, 'name').name('New Planet Name');
 
 				var nox = newObject.add( userParams, 'x', -9, 9, 0.001).name('X Position (meters)').listen().onChange(function(){
+					p.M = BigM.M1;
+					p.Me = BigM.M1e;
 					p.setX(userParams.x);
 				});
 				var noxe = newObject.add( userParams, 'xe', 0, 15, 1).name('X Modifier (x10' + t.sup() + ')').listen().onChange(function(){
+					p.M = BigM.M1;
+					p.Me = BigM.M1e;
 					p.setXe(userParams.xe);
 				});
 
@@ -484,9 +519,13 @@
 				XConverted.domElement.style.pointerEvents = "none";
 
 				newObject.add( userParams, 'y', -9, 9, 0.001).name('Y Position (meters)').listen().onChange(function(){
+					p.M = BigM.M1;
+					p.Me = BigM.M1e;
 					p.setY(userParams.y);
 				});
 				newObject.add( userParams, 'ye', 0, 15, 1).name('Y Modifier (x10' + t.sup() + ')').listen().onChange(function(){
+					p.M = BigM.M1;
+					p.Me = BigM.M1e;
 					p.setYe(userParams.ye);
 				});
 				var YConverted = newObject.add(p, 'YAdj').name('In Astronomical Units:').listen();
@@ -494,9 +533,13 @@
 				YConverted.domElement.style.pointerEvents = "none";
 
 				newObject.add( userParams, 'vx', -9, 9, 0.001).name('Initial X Velocity (m/s)').listen().onChange(function(){
+					p.M = BigM.M1;
+					p.Me = BigM.M1e;
 					p.setVX(userParams.vx);
 				});
 				newObject.add( userParams, 'vxe', 0, 15, 1).name('X Velocity Modifier (x10' + t.sup() + ')').listen().onChange(function(){
+					p.M = BigM.M1;
+					p.Me = BigM.M1e;
 					p.setVXe(userParams.vxe);
 				});
 				var VXConverted = newObject.add(p, 'VXAdj').name('In Astronomical Units:').listen();
@@ -504,9 +547,13 @@
 				VXConverted.domElement.style.pointerEvents = "none";
 
 				newObject.add( userParams, 'vy', -9, 9, 0.001).name('Initial Y Velocity (m/s)').listen().onChange(function(){
+					p.M = BigM.M1;
+					p.Me = BigM.M1e;
 					p.setVY(userParams.vy);
 				});
 				newObject.add( userParams, 'vye', 0, 15, 1).name('Y Velocity Modifier (x10' + t.sup() + ')').listen().onChange(function(){
+					p.M = BigM.M1;
+					p.Me = BigM.M1e;
 					p.setVYe(userParams.vye);
 				});
 				var VYConverted = newObject.add(p, 'VYAdj').name('In Astronomical Units:').listen();

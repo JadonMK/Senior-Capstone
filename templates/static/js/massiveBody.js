@@ -265,6 +265,12 @@ class massiveBody {
     get GYe(){
         return this.GYe;
     }
+    get M(){
+        return this.M;
+    }
+    get Me(){
+        return this.Me;
+    }
     get Parameters(){
         return [X, Xe, Y, Ye, VX, VXe, VY, VYe];
     }
@@ -314,6 +320,7 @@ class massiveBody {
         else if(this.YAdj == 0){
             var R = this.X;
             var Re = this.Xe;
+            console.log(this.M + "e" + this.Me);
             this.VCalc = Math.sqrt((this.G*this.M)/R);
             this.VeCalc = (this.Ge+this.Me-Re)*0.5;
 
