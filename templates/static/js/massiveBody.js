@@ -304,7 +304,7 @@ class massiveBody {
             return;
         }
         else if(this.XAdj == 0){
-            var R = this.Y;
+            var R = Math.abs(this.Y);
             var Re = this.Ye;
             this.VCalc = Math.sqrt((this.G*this.M)/R);
             this.VeCalc = (this.Ge+this.Me-Re)*0.5;
@@ -318,9 +318,8 @@ class massiveBody {
             this.VYeCalc = 0;
         }
         else if(this.YAdj == 0){
-            var R = this.X;
+            var R = Math.abs(this.X);
             var Re = this.Xe;
-            console.log(this.M + "e" + this.Me);
             this.VCalc = Math.sqrt((this.G*this.M)/R);
             this.VeCalc = (this.Ge+this.Me-Re)*0.5;
 
@@ -381,7 +380,7 @@ class massiveBody {
             return;
         }
         else if(this.XAdj == 0){
-            var R = this.Y;
+            var R = Math.abs(this.Y);
             var Re = this.Ye;
             this.VCalc = Math.sqrt((this.G*this.M)/R);
             this.VeCalc = (this.Ge+this.Me-Re)*0.5;
@@ -395,7 +394,7 @@ class massiveBody {
             this.VYeCalc = 0;
         }
         else if(this.YAdj == 0){
-            var R = this.X;
+            var R = Math.abs(this.X);
             var Re = this.Xe;
             this.VCalc = Math.sqrt((this.G*this.M)/R);
             this.VeCalc = (this.Ge+this.Me-Re)*0.5;
@@ -455,8 +454,7 @@ class massiveBody {
             return;
         }
         else if(this.XAdj == 0){
-            console.log("X = 0");
-            var R = this.Y;
+            var R = Math.abs(this.Y);
             var Re = this.Ye;
             this.VCalc = Math.sqrt((this.G*this.M)/R);
             console.log(this.VCalc);
@@ -471,7 +469,7 @@ class massiveBody {
             this.VYeCalc = 0;
         }
         else if(this.YAdj == 0){
-            var R = this.X;
+            var R = Math.abs(this.X);
             var Re = this.Xe;
             this.VCalc = Math.sqrt((this.G*this.M)/R);
             this.VeCalc = (this.Ge+this.Me-Re)*0.5;
@@ -531,7 +529,7 @@ class massiveBody {
             return;
         }
         else if(this.XAdj == 0){
-            var R = this.Y;
+            var R = Math.abs(this.Y);
             var Re = this.Ye;
             this.VCalc = Math.sqrt((this.G*this.M)/R);
             this.VeCalc = (this.Ge+this.Me-Re)*0.5;
@@ -545,7 +543,7 @@ class massiveBody {
             this.VYeCalc = 0;
         }
         else if(this.YAdj == 0){
-            var R = this.X;
+            var R = Math.abs(this.X);
             var Re = this.Xe;
             this.VCalc = Math.sqrt((this.G*this.M)/R);
             this.VeCalc = (this.Ge+this.Me-Re)*0.5;

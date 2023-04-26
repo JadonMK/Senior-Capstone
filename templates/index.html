@@ -96,7 +96,7 @@
 				rootScale: false
 			}
 
-			var t = '1.989 x10^30';
+			var t = "1.989 x10^30";
 			//Math Constants
 			var BigM = {
 				S: 1.989,
@@ -105,10 +105,10 @@
 				M1e: 30,
 				R1: 1,
 				T1: 5772,
+				L1: 1,
 				BB1: '#FFF8EF',
 				SM1: 1,
-				ReadOut1: t,
-				lights1: []
+				ReadOut1: t
 			}
 
 			//Mesh Arrays for central masses
@@ -121,32 +121,15 @@
 			SolarMaterial[0] = new THREE.MeshBasicMaterial();
 			SolarMaterial[0].color.set(BigM.BB1 /*black*/);
 			Suns[0] = new THREE.Mesh( SolarGeometry[0], SolarMaterial[0]);
-			//Suns[0].material.emissive = new THREE.Color( '#FFF8EF' );
 			scene.add( Suns[0] );
-			//Ignite(BigM.lights1, 8, "#FFFFFF");
 
 			//Physcis Engines for each Planet
 			var PlanetPhysics = [];	
-			// PlanetPhysics[0] = new massiveBody("Mercury", 5.79, 10, 0, 0, 0, 0, 4.74, 4, M, Me);
-			// PlanetPhysics[1] = new massiveBody("Venus", 1.082, 11, 0, 0, 0, 0, 3.50, 4, M, Me);
-			// PlanetPhysics[2] = new massiveBody("Earth", 1.47095, 11, 0, 0, 0, 0, 3.0290, 4, M, Me);
-			// PlanetPhysics[3] = new massiveBody("Mars", 2.280, 11, 0, 0, 0, 0, 2.41, 4, M, Me);
-			// PlanetPhysics[4] = new massiveBody("Jupiter", 7.785, 11, 0, 0, 0, 0, 1.31, 4, M, Me);
-			// PlanetPhysics[5] = new massiveBody("Saturn", 1.4320, 12, 0, 0, 0, 0, 9.7, 3, M, Me);
-			// PlanetPhysics[6] = new massiveBody("Uranus", 2.8670, 12, 0, 0, 0, 0, 6.8, 3, M, Me);
-			// PlanetPhysics[7] = new massiveBody("Neptune", 4.5150, 12, 0, 0, 0, 0, 5.4, 3, M, Me);
-			// PlanetPhysics[8] = new massiveBody("Pluto", 5.9064, 12, 0, 0, 0, 0, 4.7, 3, M, Me);
 
 			//Orbiting Body Geometry
 			var Planets = [];
-			var PlanetGeometry = new THREE.SphereGeometry(0.2, 32, 16);
+			var PlanetGeometry;
 			var PlanetMaterial = new THREE.MeshLambertMaterial( { color: 0x060404 /*Grey*/ } );
-			for(var i = 0; i < NUMPLANETS; i++){
-				Planets[i] = new THREE.Mesh(PlanetGeometry, PlanetMaterial);
-			}
-			for(var i = 0; i < NUMPLANETS; i++){
-				scene.add( Planets[i] );
-			}
 
 			//Orbit Tracing 
 			var skip = 0; //Number of points to skip in between trace points (saves on memory)
@@ -156,19 +139,26 @@
 			var orbitLines = [];
 			const pointsmaterial = new THREE.LineBasicMaterial( { color: 0x666666 /*White*/} );
 
-			//Establish Gui Interface
-			userControls();
-
 			//Rendering Frame Rate Constant
 			var count = 0;
 
 			//Planet lighting array
 			var lights = [];
+			// lights[0] = new THREE.PointLight();
+			// var lh = new THREE.PointLightHelper(lights[0], 1);
+
+			startControls();
 
 			function animate() {
 				if(start){
 					startGui.hide();
 					mainGui.show();
+					PlanetGeometry = new THREE.SphereGeometry(BigM.R1*0.25, 32, 16);
+					loadSolarSystem();
+					//Establish Gui Interface
+					userControls();
+					console.log(NUMPLANETS);
+					start = false;
 				}
 
 				count++;
@@ -187,11 +177,15 @@
 						}
 
 						var R = Math.sqrt(Planets[i].position.x**2 + Planets[i].position.y**2);
-						var Rprime = R - 0.6;
+						var Rprime = R - PlanetGeometry.parameters.radius*4;
 						var theta = Math.acos(Math.abs(Planets[i].position.x)/R);
 
+						// scene.remove(lh);
+						// lh = new THREE.PointLightHelper(lights[i], 1);
+						// scene.add(lh);
+
 						scene.remove(lights[i]);
-						lights[i] = new THREE.PointLight(0xFFFFFF, 100, 1.5);
+						lights[i] = new THREE.PointLight(0xFFFFFF, 100, PlanetGeometry.parameters.radius*10); //1.5
 						lights[i].color.set( BigM.BB1 );
 						lights[i].position.set(Rprime*Math.cos(theta)*Math.sign(Planets[i].position.x), Rprime*Math.sin(theta)*Math.sign(Planets[i].position.y), 0);
 						scene.add(lights[i]);
@@ -233,64 +227,6 @@
 
 			animate();
 
-			function Ignite(lights, radius, color){
-				var neg = -1;
-				var j = 1;
-				for(let i = 0; i < 12; i++){
-					lights[i] = new THREE.DirectionalLight(0xFFFFFF, 1, 1);
-					lights[i].color.set( color );
-					
-					if(i < 3){
-						lights[i].position.set(Math.cos((j)*(Math.PI/4))*radius, Math.sin((j)*(Math.PI/4))*radius, 0);
-
-						lights[i].target.position.set(Math.cos((j)*(Math.PI/4))*radius*2, Math.sin((j)*(Math.PI/4))*radius*2, 0);
-						scene.add(lights[i]);
-						scene.add(lights[i].target);
-						lights[i].target.updateMatrixWorld();
-
-						const pointLightHelper = new THREE.DirectionalLightHelper( lights[i], 1 );
-						scene.add( pointLightHelper );
-					}
-					else if(i > 2 && i < 6){
-						lights[i].position.set(Math.cos((j)*(Math.PI/4))*radius*neg, Math.sin((j)*(Math.PI/4))*radius, 0);
-						
-						lights[i].target.position.set(Math.cos((j)*(Math.PI/4))*radius*neg*2, Math.sin((j)*(Math.PI/4))*radius*2, 0);
-						scene.add(lights[i]);
-						scene.add(lights[i].target);
-						lights[i].target.updateMatrixWorld();
-
-						const pointLightHelper = new THREE.DirectionalLightHelper( lights[i], 1 );
-						scene.add( pointLightHelper );
-					}
-					else if(i > 5 && i < 8){
-						lights[i].position.set(Math.cos((j)*(Math.PI/4))*radius*neg, Math.sin((j)*(Math.PI/4))*radius*neg, 0);
-						
-						lights[i].target.position.set(Math.cos((j)*(Math.PI/4))*radius*neg*2, Math.sin((j)*(Math.PI/4))*radius*neg*2, 0);
-						scene.add(lights[i]);
-						scene.add(lights[i].target);
-						lights[i].target.updateMatrixWorld();
-
-						const pointLightHelper = new THREE.DirectionalLightHelper( lights[i], 1 );
-						scene.add( pointLightHelper );
-					}
-					else{
-						lights[i].position.set(Math.cos((j)*(Math.PI/4))*radius, Math.sin((j)*(Math.PI/4))*radius*neg, 0);
-						
-						lights[i].target.position.set(Math.cos((j)*(Math.PI/4))*radius*2, Math.sin((j)*(Math.PI/4))*radius*neg*2, 0);
-						scene.add(lights[i]);
-						scene.add(lights[i].target);
-						lights[i].target.updateMatrixWorld();
-
-						const pointLightHelper = new THREE.DirectionalLightHelper( lights[i], 1 );
-						scene.add( pointLightHelper );
-					}
-
-					j++;
-					if(j > 2)
-						j = 0;
-				}
-			}
-
 			function stars() {
 				//Accidental Stars Function from THREE website:
 				//https://threejs.org/docs/index.html?q=Geometry#api/en/materials/PointsMaterial
@@ -298,9 +234,9 @@
 				const vertices = [];
 				for ( let i = 0; i < 10000; i ++ ) {
 
-					const x = THREE.MathUtils.randFloatSpread( 2000, 10000 );
-					const y = THREE.MathUtils.randFloatSpread( 2000, 10000 );
-					const z = THREE.MathUtils.randFloatSpread( 2000, 10000 );
+					const x = THREE.MathUtils.randFloatSpread( 3000, 10000 );
+					const y = THREE.MathUtils.randFloatSpread( 3000, 10000 );
+					const z = THREE.MathUtils.randFloatSpread( 3000, 10000 );
 
 					vertices.push( x, y, z );
 
@@ -312,69 +248,6 @@
 				scene.add( points );
 			}
 
-			function KelvintoRGB(T){
-				//Black Body RGB Color Selector Algorithm from: http2s://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
-				var R, G, B;
-				var T = T/100;
-
-				//Red:
-
-				if (T <= 66)
-					R = 255;
-				else{
-					R = T - 60;
-					R = 329.698727446*(R**-0.1332047592);
-					if(R < 0)
-						R = 0;
-					if(R > 255)
-						R = 255;
-				}
-
-				//Green
-
-				if(T <= 66){
-					G = T
-					G = 99.4708025861 * Math.log(G) - 161.1195681661;
-					if(G < 0)
-						G = 0;
-					if(G > 255)
-						G = 255;
-				}
-				else{
-					G = T - 60;
-					G = 288.1221695283 * (G ^ -0.0755148492);
-					if(G < 0)
-						G = 0;
-					if(G > 255)
-						G = 255;
-				}
-
-				//Blue:
-
-				if(T >= 66)
-					B = 255;
-				else{
-					if(T <= 19)
-						B = 0;
-					else{
-						B = T - 10;
-						B = 138.5177312231 * Math.log(B) - 305.0447927307;
-						if(B < 0)
-							B = 0;
-						if(B > 255)
-							B = 255;
-					}
-				}
-				
-				R = Math.round(R);
-				G = Math.round(G);
-				B = Math.round(B);
-				var RGB = R*256**2 + G*256 + B;
-	
-				RGB = RGB.toString(16);
-				BigM.BB1 = "#" + RGB;
-			}
-
 			function pauseplay(){
 				if(play)
 					play = false;
@@ -382,16 +255,9 @@
 					play = true;
 			}
 
-			function checkedOrbitTrace(n){
-				if(!PlanetPhysics[n].TraceOrbit){
-					delete orbitTracePoints[n];
-					orbitTracePoints[n] = [];
-				}
-			}
-
-			function userControls(){
+			function startControls(){
 				var b = '\u2609';
-				startGui.add(BigM, 'SM1', 0.01, 6, 0.001). name("Solar Mass (M" + b.sub() + "): ").listen().onChange(function(){
+				startGui.add(BigM, 'SM1', 0.1, 6, 0.001). name("Solar Mass (M" + b.sub() + "): ").listen().onChange(function(){
 					BigM.M1 = (BigM.SM1*BigM.S);
 					BigM.M1e = BigM.Se;
 					while(BigM.M1 >= 10){
@@ -405,22 +271,20 @@
 
 					BigM.ReadOut1 = BigM.M1.toFixed(3) + " x10^" + BigM.M1e;
 
-					BigM.R1 = 1.0283*BigM.SM1**0.9092;
+					BigM.R1 = 1.0283*BigM.SM1**0.9092; //Graphically derived function for Soalr Radii from main sequence stars
 
-					BigM.T1 = (((1.3179*BigM.SM1**3.7924)/BigM.R1**2)**0.25)*5772;
+					BigM.T1 = (((1.3179*BigM.SM1**3.7924)/BigM.R1**2)**0.25); //Graphically derived function for Solar Temperature Units from main sequence stars
 
 					KelvintoRGB(BigM.T1);
 
 					scene.remove(Suns[0]);
-					SolarGeometry[0] = new THREE.SphereGeometry( BigM.R1*2, 64, 32);
+					SolarGeometry[0] = new THREE.SphereGeometry( BigM.R1, 64, 32); //Size Adjusted
 					SolarMaterial[0].color.set(BigM.BB1);
 					Suns[0] = new THREE.Mesh( SolarGeometry[0], SolarMaterial[0]);
-					//Suns[0].material.emissive = new THREE.Color( BigM.BB1 );
 					scene.add( Suns[0] );
 				});
 		
 				var MassDisplay = startGui.add(BigM, 'ReadOut1').name("Mass (kg):").listen();
-				var t = 'n';
 				MassDisplay.__precision = '6';
 				MassDisplay.domElement.style.pointerEvents = 'none';
 				startGui.add({empty}, 'empty').name("Create Star").listen().onChange(function(){
@@ -428,13 +292,11 @@
 						start = false;
 					else	
 						start = true;
-
-					console.log("lights: " + BigM.lights1 + " R: " + BigM.R1*2+0.5 + " BB: " + BigM.BB1);
-					//Ignite(BigM.lights1, BigM.R1*2+0.5, BigM.BB1);
 				});
+			}
 
+			function userControls(){
 				var newObject = mainGui.addFolder('New Planetary Body');
-
 				const zoomFolder = mainGui.addFolder('Zoom');
 				const orbitTraceFolder = mainGui.addFolder('Orbit Tracing');
 				const scaleFolder = mainGui.addFolder('Scaling');
@@ -457,8 +319,6 @@
 						Planets[NUMPLANETS] = new THREE.Mesh(PlanetGeometry, PlanetMaterial);
 
 						console.log("X: " + this.x + "e" + this.xe + " Y: " + this.y + "e" + this.ye + " VX: " + this.vx + "e" + this.vxe + " VY: " + this.vy + "e" +this.vye);
-
-						console.log("BigM: " + BigM.M1 + "e" + BigM.M1e);
 						
 						PlanetPhysics[NUMPLANETS] = new massiveBody(this.name, this.x, this.xe, this.y, this.ye, this.vx, this.vxe, this.vy, this.vye, BigM.M1, BigM.M1e);
 
@@ -498,17 +358,20 @@
 				mainGui.add( {pauseplay}, 'pauseplay').name('\u23EF' + " Play/Pause");
 				//Move camera back to home position
 				mainGui.add( userParams, 'home').name('Revert Camera');
+
+				var t = 'n';
 	
 				var p = new massiveBody(userParams.name, userParams.x, userParams.xe, userParams.y, userParams.ye, userParams.vx, userParams.vxe, userParams.vy, userParams.vye, BigM.M1, BigM.M1e);
 				
 				newObject.add(userParams, 'name').name('New Planet Name');
 
-				var nox = newObject.add( userParams, 'x', -9, 9, 0.001).name('X Position (meters)').listen().onChange(function(){
+				newObject.add( userParams, 'x', -9, 9, 0.001).name('X Position (meters)').listen().onChange(function(){
 					p.M = BigM.M1;
 					p.Me = BigM.M1e;
+					console.log(userParams.x)
 					p.setX(userParams.x);
 				});
-				var noxe = newObject.add( userParams, 'xe', 0, 15, 1).name('X Modifier (x10' + t.sup() + ')').listen().onChange(function(){
+				newObject.add( userParams, 'xe', 0, 15, 1).name('X Modifier (x10' + t.sup() + ')').listen().onChange(function(){
 					p.M = BigM.M1;
 					p.Me = BigM.M1e;
 					p.setXe(userParams.xe);
@@ -627,6 +490,76 @@
 				});
 			}
 
+			function KelvintoRGB(T){
+				//Black Body RGB Color Selector Algorithm from: http2s://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
+				var R, G, B;
+				var T = (T*5772)/100;
+
+				//Red:
+
+				if (T <= 66)
+					R = 255;
+				else{
+					R = T - 60;
+					R = 329.698727446*(R**-0.1332047592);
+					if(R < 0)
+						R = 0;
+					if(R > 255)
+						R = 255;
+				}
+
+				//Green
+
+				if(T <= 66){
+					G = T
+					G = 99.4708025861 * Math.log(G) - 161.1195681661;
+					if(G < 0)
+						G = 0;
+					if(G > 255)
+						G = 255;
+				}
+				else{
+					G = T - 60;
+					G = 288.1221695283 * (G ^ -0.0755148492);
+					if(G < 0)
+						G = 0;
+					if(G > 255)
+						G = 255;
+				}
+
+				//Blue:
+
+				if(T >= 66)
+					B = 255;
+				else{
+					if(T <= 19)
+						B = 0;
+					else{
+						B = T - 10;
+						B = 138.5177312231 * Math.log(B) - 305.0447927307;
+						if(B < 0)
+							B = 0;
+						if(B > 255)
+							B = 255;
+					}
+				}
+				
+				R = Math.round(R);
+				G = Math.round(G);
+				B = Math.round(B);
+				var RGB = R*256**2 + G*256 + B;
+	
+				RGB = RGB.toString(16);
+				BigM.BB1 = "#" + RGB;
+			}
+
+			function checkedOrbitTrace(n){
+				if(!PlanetPhysics[n].TraceOrbit){
+					delete orbitTracePoints[n];
+					orbitTracePoints[n] = [];
+				}
+			}
+
 			function checkedZoom(p){
 				//Uncheck rest of non-selected buttons
 				for(let i = 0; i < NUMPLANETS; i++){
@@ -730,7 +663,87 @@
 				camera.position.z = 1;
 			}
 
-			function empty(){}
+			function empty(){} //Placeholder function for buttons, doesn't do anything but allows me to overide the button click with an  onChange listener
+
+			function loadSolarSystem(){
+				NUMPLANETS = 9;
+				PlanetPhysics[0] = new massiveBody("Mercury", 5.79, 10, 0, 0, 0, 0, 4.74, 4, BigM.M1, BigM.M1e);
+				PlanetPhysics[1] = new massiveBody("Venus", 1.082, 11, 0, 0, 0, 0, 3.50, 4, BigM.M1, BigM.M1e);
+				PlanetPhysics[2] = new massiveBody("Earth", 1.47095, 11, 0, 0, 0, 0, 3.0290, 4, BigM.M1, BigM.M1e);
+				PlanetPhysics[3] = new massiveBody("Mars", 2.280, 11, 0, 0, 0, 0, 2.41, 4, BigM.M1, BigM.M1e);
+				PlanetPhysics[4] = new massiveBody("Jupiter", 7.785, 11, 0, 0, 0, 0, 1.31, 4, BigM.M1, BigM.M1e);
+				PlanetPhysics[5] = new massiveBody("Saturn", 1.4320, 12, 0, 0, 0, 0, 9.7, 3, BigM.M1, BigM.M1e);
+				PlanetPhysics[6] = new massiveBody("Uranus", 2.8670, 12, 0, 0, 0, 0, 6.8, 3, BigM.M1, BigM.M1e);
+				PlanetPhysics[7] = new massiveBody("Neptune", 4.5150, 12, 0, 0, 0, 0, 5.4, 3, BigM.M1, BigM.M1e);
+				PlanetPhysics[8] = new massiveBody("Pluto", 5.9064, 12, 0, 0, 0, 0, 4.7, 3, BigM.M1, BigM.M1e);
+
+				for(var i = 0; i < NUMPLANETS; i++){
+					Planets[i] = new THREE.Mesh(PlanetGeometry, PlanetMaterial);
+				}
+				for(var i = 0; i < NUMPLANETS; i++){
+					scene.add( Planets[i] );
+				}
+			}
+
+			//Relic Function, keeping for posterity because the math was hard but most likely won't use again
+
+			//function Ignite(lights, radius, color){
+			// 	var neg = -1;
+			// 	var j = 1;
+			// 	for(let i = 0; i < 12; i++){
+			// 		lights[i] = new THREE.DirectionalLight(0xFFFFFF, 1, 1);
+			// 		lights[i].color.set( color );
+					
+			// 		if(i < 3){
+			// 			lights[i].position.set(Math.cos((j)*(Math.PI/4))*radius, Math.sin((j)*(Math.PI/4))*radius, 0);
+
+			// 			lights[i].target.position.set(Math.cos((j)*(Math.PI/4))*radius*2, Math.sin((j)*(Math.PI/4))*radius*2, 0);
+			// 			scene.add(lights[i]);
+			// 			scene.add(lights[i].target);
+			// 			lights[i].target.updateMatrixWorld();
+
+			// 			const pointLightHelper = new THREE.DirectionalLightHelper( lights[i], 1 );
+			// 			scene.add( pointLightHelper );
+			// 		}
+			// 		else if(i > 2 && i < 6){
+			// 			lights[i].position.set(Math.cos((j)*(Math.PI/4))*radius*neg, Math.sin((j)*(Math.PI/4))*radius, 0);
+						
+			// 			lights[i].target.position.set(Math.cos((j)*(Math.PI/4))*radius*neg*2, Math.sin((j)*(Math.PI/4))*radius*2, 0);
+			// 			scene.add(lights[i]);
+			// 			scene.add(lights[i].target);
+			// 			lights[i].target.updateMatrixWorld();
+
+			// 			const pointLightHelper = new THREE.DirectionalLightHelper( lights[i], 1 );
+			// 			scene.add( pointLightHelper );
+			// 		}
+			// 		else if(i > 5 && i < 8){
+			// 			lights[i].position.set(Math.cos((j)*(Math.PI/4))*radius*neg, Math.sin((j)*(Math.PI/4))*radius*neg, 0);
+						
+			// 			lights[i].target.position.set(Math.cos((j)*(Math.PI/4))*radius*neg*2, Math.sin((j)*(Math.PI/4))*radius*neg*2, 0);
+			// 			scene.add(lights[i]);
+			// 			scene.add(lights[i].target);
+			// 			lights[i].target.updateMatrixWorld();
+
+			// 			const pointLightHelper = new THREE.DirectionalLightHelper( lights[i], 1 );
+			// 			scene.add( pointLightHelper );
+			// 		}
+			// 		else{
+			// 			lights[i].position.set(Math.cos((j)*(Math.PI/4))*radius, Math.sin((j)*(Math.PI/4))*radius*neg, 0);
+						
+			// 			lights[i].target.position.set(Math.cos((j)*(Math.PI/4))*radius*2, Math.sin((j)*(Math.PI/4))*radius*neg*2, 0);
+			// 			scene.add(lights[i]);
+			// 			scene.add(lights[i].target);
+			// 			lights[i].target.updateMatrixWorld();
+
+			// 			const pointLightHelper = new THREE.DirectionalLightHelper( lights[i], 1 );
+			// 			scene.add( pointLightHelper );
+			// 		}
+
+			// 		j++;
+			// 		if(j > 2)
+			// 			j = 0;
+			// 	}
+			// }
 		</script>
 	</body>
 	
